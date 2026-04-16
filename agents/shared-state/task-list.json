@@ -1,6 +1,43 @@
 {
-  "plan": null,
+  "plan": "docs/plans/2026-04-15-gpu-memory-calculator.md",
   "dependencies": [],
-  "tasks": [],
-  "last_updated": null
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Create memory_calc module with enums and convert_memory",
+      "status": "completed",
+      "details": "Create src/memory_calc.py with MemoryUnit enum (BYTES/KB/MB/GB with power-of-1024 multipliers), DType enum (float16, float32, float64, bfloat16, int8, int16, int32, int64 with itemsize), and convert_memory(value, from_unit, to_unit) function. Raise ValueError on negative input. Also create tests/test_memory_calc.py with tests for unit conversion including same-unit, cross-unit, and negative-value cases.",
+      "files": ["src/memory_calc.py"],
+      "tests": ["tests/test_memory_calc.py"],
+      "depends_on": []
+    },
+    {
+      "id": 2,
+      "title": "Add tensor_size function",
+      "status": "completed",
+      "details": "Add tensor_size(shape, dtype, unit=MemoryUnit.BYTES) to src/memory_calc.py. Uses math.prod(shape) * dtype.itemsize, converts to requested unit. Raises ValueError if any dimension is non-positive or shape is empty. Add tests for 1D, 2D shapes, unit conversion, and error cases.",
+      "files": ["src/memory_calc.py"],
+      "tests": ["tests/test_memory_calc.py"],
+      "depends_on": [1]
+    },
+    {
+      "id": 3,
+      "title": "Add estimate_tensor_count function",
+      "status": "completed",
+      "details": "Add estimate_tensor_count(vram, vram_unit, shape, dtype) to src/memory_calc.py. Converts vram to bytes, computes tensor size in bytes, returns floor division result as int. Raises ValueError if vram is negative. Add tests for exact fit, partial remainder, tensor larger than vram, and error cases.",
+      "files": ["src/memory_calc.py"],
+      "tests": ["tests/test_memory_calc.py"],
+      "depends_on": [1, 2]
+    },
+    {
+      "id": 4,
+      "title": "Final integration: full test suite, lint, format",
+      "status": "completed",
+      "details": "Run uv run pytest --cov=src to verify all tests pass with coverage. Run uv run ruff check . and uv run ruff format . to ensure code quality. Confirm at least 14 test cases pass and zero lint errors.",
+      "files": [],
+      "tests": ["tests/test_memory_calc.py"],
+      "depends_on": [1, 2, 3]
+    }
+  ],
+  "last_updated": "2026-04-15"
 }
