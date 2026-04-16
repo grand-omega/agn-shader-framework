@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Multi-agent GPU driver development framework"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "vectorbt>=0.28.5",
+    "yfinance>=1.2.2",
+]
 
 [dependency-groups]
 dev = [
