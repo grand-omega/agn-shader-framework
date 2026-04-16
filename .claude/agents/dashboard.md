@@ -25,7 +25,7 @@ agent workflow status.
 ## Implementation
 
 - Single HTML file, no build tools, no npm
-- Reads task-list.json and feedback-log.json via fetch
+- Reads feedback-log.json via fetch for cycle history
 - Auto-refreshes every 30 seconds
 - Save to `docs/dashboard/index.html`
 
@@ -37,5 +37,5 @@ cd docs/dashboard && uv run python -m http.server 8080
 
 ## Rules
 
-- Read-only — never modify state files
+- **Only Write to docs/dashboard/** — never modify state files, src/, or tests/
 - One file — no frameworks

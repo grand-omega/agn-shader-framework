@@ -41,34 +41,46 @@ Spawn all four in a single message using the Agent tool with `team_name: "cycle"
 Each teammate's spawn prompt should include the task description from
 $ARGUMENTS so they have full context without needing the lead's history.
 
-## Step 3: Monitor passively
+**Hub-and-spoke coordination:** Each teammate's spawn prompt MUST include:
+> "When you finish your task, message the team lead with your results.
+> Do NOT poll TaskList waiting for tasks to unblock — the team lead
+> will message you when it's your turn."
 
-Do NOT orchestrate. Do NOT read files the teammates are writing.
-Do NOT re-run tests. The teammates self-organize:
+Only the **planner** should start working immediately. The **coder**,
+**analyst**, and **git-ops** prompts must say:
+> "Wait for the team lead to message you before starting work.
+> Do not poll or sleep-loop."
 
-- Each checks TaskList on startup
-- Each claims their unblocked task
-- Blocked teammates wait until dependencies complete
-- Teammates message each other directly (analyst → coder for fixes)
+## Step 3: Orchestrate handoffs (hub-and-spoke)
 
-**Only intervene if**:
-- A teammate messages you asking for help
-- A teammate has been idle for an extended period with uncompleted tasks
-- You need to nudge a stuck teammate
+The team lead is the central coordinator. All communication flows
+through the lead — teammates do NOT message each other directly
+(except analyst → coder revision feedback, relayed by lead).
 
-## Step 4: Handle revision rounds
+When each teammate messages you with completion:
 
-If the analyst sends a `needs_revision` verdict:
-- The analyst will message the coder directly with fixes
-- The analyst will create new fix tasks
-- Let the coder and analyst coordinate — do not mediate
-- Cap at 2 revision rounds. If still failing, report to user.
+1. **Planner completes** → lead messages **coder**: "The plan is at
+   `docs/plans/<file>`. Your task is unblocked — start implementing."
+2. **Coder completes** → lead messages **analyst**: "Implementation
+   is done. Files: <list>. Your task is unblocked — start review."
+3. **Analyst completes (approved)** → lead messages **git-ops**:
+   "Review approved. Your task is unblocked — run checks and commit."
+4. **Analyst completes (needs_revision)** → lead messages **coder**
+   with the analyst's fix list. When coder finishes, lead messages
+   **analyst** to re-review. Max 2 revision rounds — if still failing,
+   report to user.
 
-## Step 5: Shutdown and cleanup
+Do NOT read files the teammates are writing. Do NOT re-run tests.
+Only relay messages and dispatch the next agent.
+
+## Step 4: Shutdown and cleanup
 
 After git-ops confirms the commit:
-1. Send `{"type": "shutdown_request"}` to all four teammates
-2. Wait for shutdown confirmations
+1. Send `{"type": "shutdown_request"}` to each teammate individually
+   (planner, coder, analyst, git-ops)
+2. Wait for each to respond with
+   `{"type": "shutdown_response", "approve": true}` — this terminates
+   their process
 3. Call `TeamDelete` to clean up team resources
 4. Report to the user:
    - What was built (files created/modified)

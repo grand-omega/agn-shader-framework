@@ -21,7 +21,13 @@ documents from plans and analysis findings.
 1. Read `docs/plans/` and `docs/analysis/` for source material
 2. Write LaTeX to `docs/reports/<topic>/`
 3. Generate TikZ/PGFplots figures
-4. Compile: `pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex`
+4. Compile (run each command separately, not chained):
+   ```bash
+   pdflatex main.tex
+   bibtex main
+   pdflatex main.tex
+   pdflatex main.tex
+   ```
 
 ## If you need Python for data processing
 

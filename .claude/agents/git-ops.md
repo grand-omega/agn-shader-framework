@@ -15,15 +15,13 @@ maxTurns: 15
 
 You are the **git operations agent**.
 
-## Self-organizing behavior
+## Coordination
 
-On startup:
-1. Check TaskList for your assigned or unblocked tasks
-2. If your tasks are blocked (waiting on analyst), wait and check again
-3. When a task unblocks, claim it with TaskUpdate (set owner, status in_progress)
-4. Run pre-commit checks, stage, commit
-5. Mark task completed
-6. Message the team lead with the commit hash
+Wait for the **team lead** to message you before starting work.
+Do NOT poll TaskList waiting for tasks to unblock.
+
+When you finish, mark your task completed and message the **team lead**
+with the commit hash. Do NOT message other teammates directly.
 
 ## Conventions
 

@@ -46,8 +46,8 @@ uv add --group dev <pkg>                 # add a dev dependency
 ## Agent team architecture
 
 This project uses Claude Code Agent Teams (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`).
-Teammates are self-organizing — they check TaskList, claim work, and
-message each other directly. The team lead monitors passively.
+Teammates use **hub-and-spoke** coordination — all communication flows
+through the team lead, who dispatches each agent when its turn arrives.
 
 ### Slash commands
 
@@ -67,30 +67,49 @@ message each other directly. The team lead monitors passively.
 
 Each agent owns its directories — no cross-writing.
 
-### Coordination model
+### Coordination model (hub-and-spoke)
 
-Teammates self-organize via the built-in task system. Sequencing is
-handled by **task dependencies** (blockedBy), not by the lead:
+All communication flows through the **team lead**. Teammates do NOT
+message each other directly or poll TaskList for unblocked work.
 
 ```
-[Task: Plan] ──unblocks──→ [Task: Implement] ──unblocks──→ [Task: Review] ──unblocks──→ [Task: Commit]
-   planner                     coder                          analyst                     git-ops
-                                 ↑                               │
-                                 └──── SendMessage (fixes) ──────┘
+                    ┌── planner ──┐
+                    │             │
+team lead ──msg──→  ├── coder ────┤  ──msg──→ team lead
+                    │             │
+                    ├── analyst ──┤
+                    │             │
+                    └── git-ops ──┘
 ```
 
-- All four teammates are spawned simultaneously
-- Each checks TaskList, waits for their task to unblock, claims it
-- Analyst → coder revision loop via direct SendMessage (max 2 rounds)
-- Lead only intervenes if someone is stuck
+1. All four teammates are spawned simultaneously
+2. Only planner starts immediately; others wait for the lead
+3. When planner completes → lead messages coder to start
+4. When coder completes → lead messages analyst to start
+5. When analyst completes (approved) → lead messages git-ops to commit
+6. When analyst completes (needs_revision) → lead relays fixes to coder,
+   then tells analyst to re-review (max 2 rounds)
 
 ### Task coordination
 
 - **TeamCreate** at the start of each cycle, **TeamDelete** at the end
 - Use the **built-in task system** (TaskCreate/TaskUpdate/TaskList) — not JSON files
-- Task dependencies auto-unblock when predecessors complete
-- Teammates message each other directly via SendMessage
+- Task dependencies track sequencing; the lead dispatches via SendMessage
+- Teammates message only the team lead — never each other
 - `agents/shared-state/feedback-log.json` — analyst → planner feedback (persists across cycles)
+
+### Feedback log schema
+
+Each entry in `agents/shared-state/feedback-log.json` follows:
+```json
+{
+  "date": "YYYY-MM-DD",
+  "cycle": "<feature name>",
+  "verdict": "approved | needs_revision",
+  "issues": ["<issue description>"],
+  "lessons": ["<lesson learned>"]
+}
+```
 
 ## Directory layout
 
