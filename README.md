@@ -1,4 +1,4 @@
-# GPU Agent Framework
+# AGN Shader Framework
 
 Multi-agent development framework powered by Claude Code Agent Teams.
 
