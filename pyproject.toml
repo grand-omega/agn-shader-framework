@@ -1,5 +1,5 @@
 [project]
-name = "gpu-agent-framework"
+name = "agn-shader-framework"
 version = "0.1.0"
 description = "Multi-agent GPU driver development framework"
 readme = "README.md"
